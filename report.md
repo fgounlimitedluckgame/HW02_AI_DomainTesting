@@ -550,11 +550,11 @@ BVA is executed on the ordered partition: **Phone Number Length** (Constraint: `
 
 ### BVA Test Cases
 
-| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome (Specification) | Actual Result |
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome (Specification) | Actual Result | Verdict 
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **TC_BVA_01** | BVA | Phone Length = LB - 1 (9) | `phone`: "091234567" | **Failure**: Rejected by client validation. | **Failure** (but fails because it starts with 0, not due to length). | PASS
-| **TC_BVA_02** | BVA | Phone Length = LB (10) | `phone`: "0912345678" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation due to leading 0. | FAIL
-| **TC_BVA_03** | BVA | Phone Length = UB (11) | `phone`: "09123456789" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation (starts with 0 and exceeds length 10). | FAIL
-| **TC_BVA_04** | BVA | Phone Length = UB + 1 (12) | `phone`: "091234567890" | **Failure**: Rejected by client validation. | **Failure**: Rejected. | PASS
+| **TC_BVA_01** | BVA | Phone Length = LB - 1 (9) | `phone`: "091234567" | **Failure**: Rejected by client validation. | **Failure** (but fails because it starts with 0, not due to length). | PASS 
+| **TC_BVA_02** | BVA | Phone Length = LB (10) | `phone`: "0912345678" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation due to leading 0. | FAIL |
+| **TC_BVA_03** | BVA | Phone Length = UB (11) | `phone`: "09123456789" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation (starts with 0 and exceeds length 10). | FAIL |
+| **TC_BVA_04** | BVA | Phone Length = UB + 1 (12) | `phone`: "091234567890" | **Failure**: Rejected by client validation. | **Failure**: Rejected. | PASS |
 
 
