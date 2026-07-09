@@ -246,7 +246,7 @@ After thorough examination, the AI (LLM) showed several limitations
 - **Why:** It can be explained that AI has a context window limit where the possible details are omitted due to it
 - **Gap #2: AI using increment (ie using the increment button)** AI responded with an answer that sounds like using the non-existent `+`/`-` button
 - **Why:** The AI read is too focused on the specification document while forgetting the actual implementation is lacking such feature
-- **Gap #3: AI using 'or' for TC_DOM_INV_[01 to 04] (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determiním
+- **Gap #3: AI using 'or' for TC_DOM_INV_[01 to 04] (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determinism
 - **Why:** LLMs are inherently probabilisitc. When dealing with cases that could have multiple interpretation about the expected outcome, AI has the tendency of stating every possible solution rather than committing to one result. This shows AI struggle in deterministic decision-making when lacking concrete information
 
 ---
@@ -331,7 +331,7 @@ After thorough examination, the AI (LLM) showed several limitations
 
 - **Gap #1: AI missing test cases for the last two partitions** AI forgot to add test cases covering the `EC_AMT_INV_FLOAT`, `EC_AMT_INV_NON_NUMERIC` partitions, where human has to add it in the end
 - **Why:** The AI's context memory probably reached its limits, making it forgetting several contexts that were loaded earlier
-- **Gap #2: AI using 'or' for TC_DOM_INV_01 (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determiním
+- **Gap #2: AI using 'or' for TC_DOM_INV_01 (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determinism
 - **Why:** LLMs are inherently probabilisitc. When dealing with cases that could have multiple interpretation about the expected outcome, AI has the tendency of stating every possible solution rather than committing to one result. This shows AI struggle in deterministic decision-making when lacking concrete information
 
 ---
@@ -414,5 +414,147 @@ To allow logged-in users to update their personal information (Họ Tên, Số �
 | **TC_DOM_INV_06** | Domain | `EC_ROLE_INV_01` | *Direct API body update:*<br>`name`: "Nguyen Van A"<br>`phone`: "0912345678"<br>`role`: "admin" | **Failure**: API ignores `role` update or returns `403 Forbidden` / `400 Bad Request`. | **Privilege Escalation (Defect)**: Backend API updates the user's role to `'admin'`, bypassing access controls. | FAIL
 
 ---
+
+# Boundary Value Analysis
+
+## Feature: FR-01: Đăng ký tài khoản
+
+BVA focuses on the boundary limit of the ordered equivalence partition: **Mật khẩu Length** (Constraint: `length >= 8`).
+
+### Ordered Partition Boundary Check
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Password Length** (>= 8) | **8** | **7** | **9** | *N/A* | *N/A* | *N/A* |
+
+- **Lower Boundary (LB = 8)**: Minimum valid length. Verifies the system accepts the exact lowest threshold.
+- **LB - 1 (Length = 7)**: Invalid value just outside the valid partition. Checks that the boundary constraint prevents short inputs.
+- **LB + 1 (Length = 9)**: Valid value just inside the valid partition. Verifies inputs slightly above the boundary work correctly.
+
+### BVA Test Cases
+
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome | Actual Result | Verdict
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | 
+| **TC_BVA_01** | BVA | Password Length = LB - 1 (7) | `name`: "Nguyen Van A"<br>`email`: "bva7@eshop.com"<br>`password`: "Pswd12!"<br>`confirmPassword`: "Pswd12!" | **Failure**: Mật khẩu quá yếu! Phải dài tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và KÝ TỰ ĐẶC BIỆT. | **Failure**: Mật khẩu quá yếu! Phải dài tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và KÝ TỰ ĐẶC BIỆT. | PASS
+| **TC_BVA_02** | BVA | Password Length = LB (8) | `name`: "Nguyen Van A"<br>`email`: "bva8@eshop.com"<br>`password`: "Pswd123!"<br>`confirmPassword`: "Pswd123!" | **Success**: User gets directed back to the login screen. | **Failure**: Mật khẩu quá yếu! Phải dài tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và KÝ TỰ ĐẶC BIỆT. | FAIL
+| **TC_BVA_03** | BVA | Password Length = LB + 1 (9) | `name`: "Nguyen Van A"<br>`email`: "bva9@eshop.com"<br>`password`: "Pswd1234!"<br>`confirmPassword`: "Pswd1234!" | **Success**: User gets directed back to the login screen. | **Failure**: Mật khẩu quá yếu! Phải dài tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và KÝ TỰ ĐẶC BIỆT. || FAIL
+
+## Feature: FR-07: Giỏ hàng (Shopping Cart)
+
+BVA focuses on the lower boundary limit of the ordered equivalence partition: **Cart Item Quantity** (Constraint: `quantity >= 1`).
+
+### Ordered Partition Boundary Check
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Cart Item Quantity** (>= 1) | **1** | **0** | **2** | *N/A* | *N/A* | *N/A* |
+
+- **Lower Boundary (LB = 1)**: The absolute minimum items allowed in a cart row.
+- **LB - 1 (Value = 0)**: Invalid. Reducing below 1 should trigger deletion confirmation or be rejected.
+- **LB + 1 (Value = 2)**: Valid. Verifies the basic incremental step works correctly.
+
+### BVA Test Cases
+
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome | Actual Result | Verdict
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC_BVA_01** | BVA | Cart Quantity = LB - 1 (0) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `0`. | **Outcome**: System rejects the value. | Product A's quantity is 0 | FAIL
+| **TC_BVA_02** | BVA | Cart Quantity = LB (1) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `1`. | **Outcome**: Accepted. Product A subtotal = `price * 1`. | Product A subtotal is `price * 1` | PASS
+| **TC_BVA_03** | BVA | Cart Quantity = LB + 1 (2) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `2`. | **Outcome**: Accepted. Product A subtotal = `price * 2`. | Product A subtotal = `price * 2`. | PASS
+
+## AI Gap Analysis (BVA - FR-07)
+
+After thorough examination, the AI (LLM) showed several limitations
+
+- **Gap #1: AI using 'or' for TC_BVA_01 (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determinism
+- **Why:** LLMs are inherently probabilisitc. When dealing with cases that could have multiple interpretation about the expected outcome, AI has the tendency of stating every possible solution rather than committing to one result. This shows AI struggle in deterministic decision-making when lacking concrete information
+
+## Feature: FR-13: Dashboard
+
+BVA focuses on two ordered partitions:
+1. **Total amount of delivered orders** (Constraint: `total_amount >= 0`).
+2. **Total order count in system** (Constraint: `count >= 0`).
+
+### Ordered Partition 1: Delivered Order Amount
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Delivered Order Amount** (>= 0) | **0** | **-1** | **1** | *N/A* | *N/A* | *N/A* |
+
+### Ordered Partition 2: Total Order Count
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Total Order Count** (>= 0) | **0** | *N/A* | **1** | *N/A* | *N/A* | *N/A* |
+
+### BVA Test Cases
+
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome | Actual Result | Verdict
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC_BVA_01** | BVA | Delivered Amount = LB - 1 (-1) | `orders` = [<br>  { id: 1, total_amount: -1, status: "delivered" }<br>] | **Outcome**: System flags validation error, database blocks insert | **Outcome**: Total Revenue = -2 ₫, Total Orders = 1. | FAIL
+| **TC_BVA_02** | BVA | Delivered Amount = LB (0) | `orders` = [<br>  { id: 1, total_amount: 0, status: "delivered" }<br>] | **Outcome**: Total Revenue = 0 ₫, Total Orders = 1. | **Outcome**: Total Revenue = 0 ₫, Total Orders = 1 | PASS
+| **TC_BVA_03** | BVA | Delivered Amount = LB + 1 (1) | `orders` = [<br>  { id: 1, total_amount: 1, status: "delivered" }<br>] | **Outcome**: Total Revenue = 1 ₫, Total Orders = 1. | **Outcome**: Total Revenue = 2 ₫, Total Orders = 1. | FAIL
+| **TC_BVA_04** | BVA | Order Count = LB (0) | `orders` = `[]` | **Outcome**: Total Revenue = 0 ₫, Total Orders = 0. |
+| **TC_BVA_05** | BVA | Order Count = LB + 1 (1) | `orders` = [<br>  { id: 1, total_amount: 30000000, status: "delivered" }<br>] | **Outcome**: Total Revenue = 60.000.000 ₫, Total Orders = 1. | FAIL
+
+## AI Gap Analysis (BVA - FR-13)
+
+After thorough examination, the AI (LLM) showed several limitations
+
+- **Gap #1: AI using 'or' for TC_DOM_INV_[01 to 04] (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determinism
+- **Why:** LLMs are inherently probabilisitc. When dealing with cases that could have multiple interpretation about the expected outcome, AI has the tendency of stating every possible solution rather than committing to one result. This shows AI struggle in deterministic decision-making when lacking concrete information
+
+## Feature: FR-07: Giỏ hàng (Shopping Cart)
+
+BVA focuses on the lower boundary limit of the ordered equivalence partition: **Cart Item Quantity** (Constraint: `quantity >= 1`).
+
+### Ordered Partition Boundary Check
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Cart Item Quantity** (>= 1) | **1** | **0** | **2** | *N/A* | *N/A* | *N/A* |
+
+- **Lower Boundary (LB = 1)**: The absolute minimum items allowed in a cart row.
+- **LB - 1 (Value = 0)**: Invalid. Reducing below 1 should trigger deletion confirmation or be rejected.
+- **LB + 1 (Value = 2)**: Valid. Verifies the basic incremental step works correctly.
+
+### BVA Test Cases
+
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome | Actual Result | Verdict
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC_BVA_01** | BVA | Cart Quantity = LB - 1 (0) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `0`. | **Outcome**: System rejects the value. | Product A's quantity is 0 | FAIL
+| **TC_BVA_02** | BVA | Cart Quantity = LB (1) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `1`. | **Outcome**: Accepted. Product A subtotal = `price * 1`. | Product A subtotal is `price * 1` | PASS
+| **TC_BVA_03** | BVA | Cart Quantity = LB + 1 (2) | 1. Add product A using `Xem chi tiết`.<br>2. Set Product A quantity to `2`. | **Outcome**: Accepted. Product A subtotal = `price * 2`. | Product A subtotal = `price * 2`. | PASS
+
+## AI Gap Analysis (BVA - FR-07)
+
+After thorough examination, the AI (LLM) showed several limitations
+
+- **Gap #1: AI using 'or' for TC_BVA_01 (Non-deterministic Outcome)** AI presented an expected outcome with one of the results, violating ISTQB'principle of determinism
+- **Why:** LLMs are inherently probabilisitc. When dealing with cases that could have multiple interpretation about the expected outcome, AI has the tendency of stating every possible solution rather than committing to one result. This shows AI struggle in deterministic decision-making when lacking concrete information
+
+## Feature: FR-14: Quản lý hồ sơ cá nhân (mobile)
+
+BVA is executed on the ordered partition: **Phone Number Length** (Constraint: `10 <= length <= 11`).
+
+### Ordered Partition Boundary Check
+
+| Partition | LB | LB−1 | LB+1 | UB−1 | UB | UB+1 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Phone Number Length** | **10** | **9** | **11** | **10** | **11** | **12** |
+
+- **Lower Boundary (LB = 10)**: Minimum valid length. Validates a standard 10-digit number.
+- **LB - 1 (Length = 9)**: Invalid length. Verifies the input fails validation.
+- **LB + 1 (Length = 11)**: Valid length. Validates a standard 11-digit number.
+- **Upper Boundary (UB = 11)**: Maximum valid length.
+- **UB + 1 (Length = 12)**: Invalid length. Verifies the input fails validation.
+
+### BVA Test Cases
+
+| Test Case ID | Technique | Boundary Covered | Inputs | Expected Outcome (Specification) | Actual Result |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC_BVA_01** | BVA | Phone Length = LB - 1 (9) | `phone`: "091234567" | **Failure**: Rejected by client validation. | **Failure** (but fails because it starts with 0, not due to length). | PASS
+| **TC_BVA_02** | BVA | Phone Length = LB (10) | `phone`: "0912345678" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation due to leading 0. | FAIL
+| **TC_BVA_03** | BVA | Phone Length = UB (11) | `phone`: "09123456789" | **Success**: Profile is updated. | **Failure (Defect)**: Fails regex validation (starts with 0 and exceeds length 10). | FAIL
+| **TC_BVA_04** | BVA | Phone Length = UB + 1 (12) | `phone`: "091234567890" | **Failure**: Rejected by client validation. | **Failure**: Rejected. | PASS
 
 
